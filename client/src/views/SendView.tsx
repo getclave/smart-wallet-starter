@@ -1,8 +1,11 @@
 'use client';
 
 import { Token, tokens } from '@/constants';
-import { Page, useSetPage } from '@/store';
+import { sdk } from '@/sdk';
+import { Page, useBalances, useSetPage } from '@/store';
+import { Queries, queryClient } from '@/utils';
 import { mergeClasses } from '@/utils/global';
+import { formatBigNumber } from '@asgarovf/smart-wallet-sdk';
 import { useMutation } from '@tanstack/react-query';
 import { ethers } from 'ethers';
 import { useMemo, useState } from 'react';
@@ -11,10 +14,24 @@ export const SendView = () => {
     const setPage = useSetPage();
     const [value, setValue] = useState('');
     const [receiver, setReceiver] = useState('');
+    const [receiver2, setReceiver2] = useState('');
     const [selectedToken, setSelectedToken] = useState<Token>(tokens[0]);
+    const balances = useBalances();
 
     const transfer = async () => {
-        // TODO: Implement the transfer logic
+        const tx = await sdk.core.getBatchTransaction(
+            {
+                to: receiver,
+                value: ethers.utils.parseEther(value),
+            },
+            {
+                to: receiver2,
+                value: ethers.utils.parseEther(value),
+            },
+        );
+
+        await tx.signAndSend();
+        queryClient.refetchQueries({ queryKey: [Queries.BALANCES] });
     };
 
     const transferMutation = useMutation({
@@ -51,7 +68,7 @@ export const SendView = () => {
                     defaultValue={selectedToken.address}
                     className="ml-auto h-12 bg-transparent border-2 outline-none border-slate-700 rounded-md text-lg px-2"
                 >
-                    {/* {tokens.map((item) => (
+                    {tokens.map((item) => (
                         <option key={item.address} value={item.address}>
                             {item.symbol} -{' '}
                             {formatBigNumber(
@@ -60,17 +77,27 @@ export const SendView = () => {
                             )}{' '}
                             Available
                         </option>
-                    ))} */}
+                    ))}
                 </select>
             </div>
             <div>
                 <div className="mt-4">
-                    <span className="inputLabel">Receiver</span>
+                    <span className="inputLabel">Receiver 1</span>
                     <input
                         onChange={(e) => setReceiver(e.target.value)}
                         placeholder="Enter address"
                         autoFocus
                         value={receiver}
+                        className="h-12 w-full mt-2 text-md bg-transparent outline-none caret-slate-300 border-b-2"
+                    />
+                </div>
+                <div className="mt-4">
+                    <span className="inputLabel">Receiver 2</span>
+                    <input
+                        onChange={(e) => setReceiver2(e.target.value)}
+                        placeholder="Enter address"
+                        autoFocus
+                        value={receiver2}
                         className="h-12 w-full mt-2 text-md bg-transparent outline-none caret-slate-300 border-b-2"
                     />
                 </div>

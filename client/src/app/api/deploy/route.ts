@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const contracts = SmartContract.create({
         chainId: 300,
         contracts: {
-            accountFactory: 'YOUR_FACTORY_CONTRACT_ADDRESS',
+            accountFactory: '0x4b0d8580EA014B614259ee1c994Ef896989aA9B2',
         },
     });
     const factoryContract = contracts.getContractWithEOASigner(
